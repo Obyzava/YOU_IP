@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>!!! WARNING !!!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('https://media1.tenor.com/m/wl8v_qdsA8EAAAAd/trollge-massacare.gif') center/cover;
+            color: red;
+            font-family: 'Arial Black', sans-serif;
+            text-align: center;
+            cursor: none;
+            overflow: hidden;
+        }
+        
+        #ip-display {
+            font-size: 72px;
+            font-weight: bold;
+            text-shadow: 0 0 15px black;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            animation: pulse 0.5s infinite alternate, shake 0.3s infinite;
+            border: 3px solid red;
+        }
+        
+        #warning {
+            position: absolute;
+            bottom: 30px;
+            color: white;
+            font-size: 36px;
+            text-shadow: 0 0 10px red;
+            animation: blink 1s infinite;
+        }
+        
+        #countdown {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 48px;
+            color: red;
+            text-shadow: 0 0 10px black;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+        
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(5px); }
+        }
+        
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        
+        .blood {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('https://i.imgur.com/WXJf9yr.png');
+            pointer-events: none;
+            opacity: 0;
+            animation: bloodEffect 10s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="blood"></div>
+    <div id="ip-display">YOUR IP: <span id="ip-address">127.0.0.1</span></div>
+    <div id="warning">!!! SYSTEM COMPROMISED !!! MALWARE DETECTED !!!</div>
+    <div id="countdown">01:30</div>
+
+    <audio id="bgMusic" loop>
+        <source src="https://raw.githubusercontent.com/Obyzava/YOU_IP/main/1.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="scream" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-horror-scream-2836.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Получаем реальный IP
+        fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('ip-address').textContent = data.ip;
+            })
+            .catch(() => {
+                document.getElementById('ip-address').textContent = 
+                    Math.floor(Math.random() * 255) + "." + 
+                    Math.floor(Math.random() * 255) + "." + 
+                    Math.floor(Math.random() * 255) + "." + 
+                    Math.floor(Math.random() * 255);
+            });
+        
+        // Таймер обратного отсчета
+        function startCountdown() {
+            let time = 90;
+            const timer = setInterval(() => {
+                time--;
+                const minutes = Math.floor(time / 60);
+                const seconds = time % 60;
+                document.getElementById('countdown').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (time <= 0) {
+                    clearInterval(timer);
+                    triggerScare();
+                }
+                
+                // Случайные эффекты во время отсчета
+                if (Math.random() < 0.1) {
+                    randomEffect();
+                }
+            }, 1000);
+        }
+        
+        // Случайные пугающие эффекты
+        function randomEffect() {
+            const effects = [
+                () => document.body.style.filter = "invert(100%)",
+                () => document.body.style.background = "black",
+                () => document.getElementById('ip-display').style.color = "white",
+                () => document.getElementById('warning').textContent = "!!! THEY ARE WATCHING YOU !!!"
+            ];
+            
+            const effect = effects[Math.floor(Math.random() * effects.length)];
+            effect();
+            
+            setTimeout(() => {
+                document.body.style.filter = "";
+                document.body.style.background = "";
+                document.getElementById('ip-display').style.color = "red";
+                document.getElementById('warning').textContent = "!!! SYSTEM COMPROMISED !!! MALWARE DETECTED !!!";
+            }, 1000);
+        }
+        
+        // Финальный пугающий эффект
+        function triggerScare() {
+            // Громкий крик
+            document.getElementById('scream').volume = 1;
+            document.getElementById('scream').play();
+            
+            // Эффект крови
+            document.querySelector('.blood').style.opacity = "0.8";
+            
+            // Мигающий экран
+            let flashes = 0;
+            const flashInterval = setInterval(() => {
+                document.body.style.background = flashes % 2 === 0 ? "black" : "red";
+                flashes++;
+                if (flashes > 10) {
+                    clearInterval(flashInterval);
+                    document.body.style.background = "";
+                }
+            }, 200);
+            
+            // Сообщение
+            document.getElementById('warning').textContent = "!!! TOO LATE !!! THEY GOT YOU !!!";
+            document.getElementById('ip-display').textContent = "CONNECTION LOST";
+        }
+        
+        // Запрет действий
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('selectstart', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || e.key === 'F11') e.preventDefault();
+        });
+        
+        // Запуск эффектов при клике
+        document.addEventListener('click', function init() {
+            // Полноэкранный режим
+            document.documentElement.requestFullscreen().catch(e => {});
+            
+            // Запуск музыки
+            document.getElementById('bgMusic').volume = 0.7;
+            document.getElementById('bgMusic').play().catch(e => {});
+            
+            // Запуск таймера
+            startCountdown();
+            
+            // Удаляем обработчик после первого клика
+            document.removeEventListener('click', init);
+        }, { once: true });
+        
+        // Автозапуск через 3 секунды (может не работать в некоторых браузерах)
+        setTimeout(() => {
+            document.documentElement.requestFullscreen().catch(e => {});
+            document.getElementById('bgMusic').play().catch(e => {});
+            startCountdown();
+        }, 3000);
+    </script>
+</body>
+</html>
