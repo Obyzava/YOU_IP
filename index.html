@@ -75,6 +75,20 @@
             opacity: 0;
             animation: bloodEffect 10s infinite;
         }
+        
+        #click-to-start {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 24px;
+            z-index: 100;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -82,8 +96,10 @@
     <div id="ip-display">YOUR IP: <span id="ip-address">127.0.0.1</span></div>
     <div id="warning">!!! SYSTEM COMPROMISED !!! MALWARE DETECTED !!!</div>
     <div id="countdown">01:30</div>
+    <div id="click-to-start">CLICK ANYWHERE TO START</div>
 
-    <audio id="bgMusic" loop>
+    <!-- Музыка с autoplay и muted (хитрость для обхода блокировки) -->
+    <audio id="bgMusic" loop muted>
         <source src="https://raw.githubusercontent.com/Obyzava/YOU_IP/main/1.mp3" type="audio/mpeg">
     </audio>
     
@@ -180,28 +196,40 @@
             if (e.key === 'F12' || e.key === 'F11') e.preventDefault();
         });
         
-        // Запуск эффектов при клике
-        document.addEventListener('click', function init() {
-            // Полноэкранный режим
-            document.documentElement.requestFullscreen().catch(e => {});
+        // Попытка автоматического запуска
+        function tryAutoStart() {
+            const music = document.getElementById('bgMusic');
             
-            // Запуск музыки
-            document.getElementById('bgMusic').volume = 0.7;
-            document.getElementById('bgMusic').play().catch(e => {});
+            // 1. Пытаемся включить автоматически
+            music.muted = false;
+            music.volume = 0.7;
+            const playPromise = music.play();
             
-            // Запуск таймера
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    // 2. Если браузер блокирует - покажем кнопку
+                    document.getElementById('click-to-start').style.display = 'block';
+                });
+            }
+            
+            // 3. В любом случае запускаем таймер и fullscreen
             startCountdown();
+            document.documentElement.requestFullscreen().catch(e => {});
+        }
+        
+        // Обработчик клика для ручного запуска
+        document.addEventListener('click', function init() {
+            const music = document.getElementById('bgMusic');
+            music.muted = false;
+            music.volume = 0.7;
+            music.play();
             
-            // Удаляем обработчик после первого клика
+            document.getElementById('click-to-start').style.display = 'none';
             document.removeEventListener('click', init);
         }, { once: true });
         
-        // Автозапуск через 3 секунды (может не работать в некоторых браузерах)
-        setTimeout(() => {
-            document.documentElement.requestFullscreen().catch(e => {});
-            document.getElementById('bgMusic').play().catch(e => {});
-            startCountdown();
-        }, 3000);
+        // Запускаем автоматически через 100мс
+        setTimeout(tryAutoStart, 100);
     </script>
 </body>
 </html>
